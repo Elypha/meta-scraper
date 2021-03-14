@@ -10,14 +10,14 @@ import JK
 
 
 def get_title(lx):
-    try: # DMM-A/dmmc
+    try: # DMM-A/DMM-C
         title = lx.xpath("""//h1[@id='title']/text()""")[0]
     except:
         title = '----'
     return title
 
 def get_release(lx):
-    try: # DMM-A/dmmc
+    try: # DMM-A/DMM-C
         release = lx.xpath("""//td[contains(text(),'商品発売日：')]/following-sibling::td/text()""")[0].strip()
         if not re.match(r'\d', release):
             raise Exception
@@ -31,7 +31,7 @@ def get_release(lx):
     return release.replace("/", "-")
 
 def get_runtime(lx):
-    try: # DMM-A/dmmc
+    try: # DMM-A/DMM-C
         runtime = lx.xpath("""//td[contains(text(),'収録時間：')]/following-sibling::td/text()""")[0]
         runtime = re.search(r"\d+", str(runtime)).group()
         if not re.match(r'\d', runtime):
@@ -57,7 +57,7 @@ def get_actors(lx, _html=''):
     return actors
 
 def get_director(lx):
-    try: # DMM-A
+    try: # DMM-A/DMM-C
         director = lx.xpath("""//td[contains(text(),'監督：')]/following-sibling::td/a/text()""")[0]
     except:
         try:
@@ -69,7 +69,7 @@ def get_director(lx):
     return director
 
 def get_series(lx):
-    try: # DMM-A
+    try: # DMM-A/DMM-C
         series = lx.xpath("""//td[contains(text(),'シリーズ：')]/following-sibling::td/a/text()""")[0]
     except:
         try:
@@ -81,7 +81,7 @@ def get_series(lx):
     return series
 
 def get_maker(lx):
-    try: # DMM-A
+    try: # DMM-A/DMM-C
         maker = lx.xpath("""//td[contains(text(),'メーカー：')]/following-sibling::td/a/text()""")[0]
     except:
         try:
@@ -93,7 +93,7 @@ def get_maker(lx):
     return maker
 
 def get_label(lx):
-    try: # DMM-A
+    try: # DMM-A/DMM-C
         label = lx.xpath("""//td[contains(text(),'レーベル：')]/following-sibling::td/a/text()""")[0]
     except:
         try:
@@ -105,7 +105,7 @@ def get_label(lx):
     return label
 
 def get_genre(lx):
-    try: # DMM-A
+    try: # DMM-A/DMM-C
         genre = lx.xpath("""//td[contains(text(),'ジャンル：')]/following-sibling::td/a/text()""")
     except:
         try:
