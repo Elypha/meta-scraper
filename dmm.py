@@ -4,7 +4,6 @@ import shutil
 
 from PIL import Image
 from lxml import html
-from urllib.parse import urlencode
 
 import JK
 
@@ -19,39 +18,41 @@ def get_title(lx):
 
 def get_release(lx):
     try: # DMM-A/dmmc
-        release = lx.xpath("""//td[contains(text(),'商品発売日：')]/following-sibling::td/text()""")[0]
+        release = lx.xpath("""//td[contains(text(),'商品発売日：')]/following-sibling::td/text()""")[0].strip()
+        if not re.match(r'\d', release):
+            raise Exception
     except:
-        try: # DMM-A/dmmc
-            release = lx.xpath("""//td[contains(text(),'配信開始日：')]/following-sibling::td/text()""")[0]
+        try:
+            release = lx.xpath("""//td[contains(text(),'配信開始日：')]/following-sibling::td/text()""")[0].strip()
+            if not re.match(r'\d', release):
+                raise Exception
         except:
             release = ''
-    if release == '----':
-        release = ''
-    return release.strip().replace("/", "-")
+    return release.replace("/", "-")
 
 def get_runtime(lx):
     try: # DMM-A/dmmc
         runtime = lx.xpath("""//td[contains(text(),'収録時間：')]/following-sibling::td/text()""")[0]
         runtime = re.search(r"\d+", str(runtime)).group()
+        if not re.match(r'\d', runtime):
+            raise Exception
     except:
-        runtime = ''
-    if runtime == '----':
         runtime = ''
     return runtime
 
-def get_actors(lx, html=''):
+def get_actors(lx, _html=''):
     try: # DMM-A
         actors = lx.xpath("""//td[contains(text(),'出演者：')]/following-sibling::td/span/a/text()""")
         if actors == []: # DMM-C
             actors = lx.xpath("""//td[contains(text(),'名前：')]/following-sibling::td//text()""")
         else:
             if '▼すべて表示する' in actors:
-                actors_data = re.findall(r"url: '/digital/videoa/-/(.+?)',", html.text)
+                actors_data = re.findall(r"url: '/digital/videoa/-/(.+?)',", _html.text)
                 actors_data = JK.web.rGET(F'https://www.dmm.co.jp/digital/videoa/-/{actors_data[0]}')
                 actors = re.findall(r'>(.+?)<', actors_data.text)
+        if '----' in actors:
+            raise Exception
     except:
-        actors = []
-    if actors == '----':
         actors = []
     return actors
 
@@ -140,15 +141,18 @@ def get_cover(lx):
 
 
 
-def scraper(videopath, dstpath, hinban='', num=''):
+def scraper(videopath, dstpath):
     file_dir, file_name = os.path.split(videopath)
     name_main, name_ext = os.path.splitext(file_name)
+
+    FLAG_manual = False
 
     # 处理文件名，提取有效 name
     name = name_main
 
-    # 根据 name 从 jav321 获取 hinban num
-    if hinban == '' and num == '':
+    if name_main.startswith('#'): # 检测手动模式
+        num, hinban, URL_cid = name_main[1:].split('#')
+    else: # 根据 name 从 jav321 获取 hinban num
         if '-' in name:
             html_jav321 = JK.web.rPOST(F'https://jp.jav321.com/search', data={"sn": name})
         else:
@@ -159,8 +163,9 @@ def scraper(videopath, dstpath, hinban='', num=''):
 
         hinban = html_jav321.url[28:]
         num = jav321[jav321.index('品番')+1][2:].upper() # jav321的品番其实是num
+        URL_cid = hinban
 
-    dmma_url = F'https://www.dmm.co.jp/digital/videoa/-/detail/=/cid={hinban}'
+    dmma_url = F'https://www.dmm.co.jp/digital/videoa/-/detail/=/cid={URL_cid}'
     html_dmma = JK.web.rGET(dmma_url, cookies={"age_check_done": "1"})
 
     if '指定されたページが見つかりません' not in html_dmma.text:
