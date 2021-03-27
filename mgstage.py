@@ -129,10 +129,10 @@ def scraper(videopath, dstpath, num=''):
     # 处理文件名，提取有效 name
     name = name_main
 
-    num = name
+    num = name.upper()
 
     # 获取 MGS 页面
-    html_mgs = JK.web.rGET(F'https://www.mgstage.com/product/product_detail/{name}/', cookies={'adc': '1'})
+    html_mgs = JK.web.rGET(F'https://www.mgstage.com/product/product_detail/{name}/', cookies={'adc': '1', 'mgs_agef': '1'})
     lx_mgs = html.fromstring(html_mgs.text)
 
     # 无效页面的 handle
