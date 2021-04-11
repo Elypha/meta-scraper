@@ -1,11 +1,9 @@
 import os
 import shutil
 
-from PIL import Image
-from lxml import html
-
 import JK
-
+from lxml import html
+from PIL import Image
 
 
 def searchCid(num):
@@ -18,20 +16,24 @@ def searchCid(num):
     except:
         print(F'Get cid for {num} failed!')
 
+
 def getTitle(lx):
     result = lx.xpath("""//div[@id='main']//h2/text()""")[0]
     return str(result)
+
 
 def getRelease(lx):
     result = lx.xpath("""//dt[contains(text(),'配信開始日')]/following-sibling::dd[1]/text()""")[0]
     result = result.replace("/", "-")
     return str(result)
 
+
 def getRuntime(lx):
     result = lx.xpath("""//dt[contains(text(),'収録時間')]/following-sibling::dd[1]/text()""")[0]
     h, m, s = result.split(':')
-    mins = round(int(h)*60+int(m)+int(s)/60)
+    mins = round(int(h) * 60 + int(m) + int(s) / 60)
     return str(mins)
+
 
 def getActor(lx):
     result = lx.xpath("""//dt[contains(text(),'出演者')]/following-sibling::dd[1]/a/text()""")
@@ -45,6 +47,7 @@ def getActor(lx):
 #         result = lx.xpath("""//td[contains(text(),'監督：')]/following-sibling::td/text()""")[0]
 #     return str(result)
 
+
 def getSeries(lx):
     # try:
     #     result = lx.xpath("""//dt[contains(text(),'シリーズ')]/following-sibling::dd[1]/a/text()""")[0]
@@ -57,6 +60,7 @@ def getSeries(lx):
 #     result = lx.xpath("""//td[contains(text(),'メーカー：')]/following-sibling::td/a/text()""")[0]
 #     return str(result)
 
+
 def getLabel(lx):
     # try:
     #     result = lx.xpath("""//td[contains(text(),'レーベル')]/following-sibling::td/a/text()""")[0]
@@ -64,6 +68,7 @@ def getLabel(lx):
     #     result = lx.xpath("""//td[contains(text(),'レーベル：')]/following-sibling::td/text()""")[0]
     result = lx.xpath("""//dt[contains(text(),'レーベル')]/following-sibling::dd[1]/a/text()""")[0]
     return str(result)
+
 
 def getGenre(lx):
     playContents = lx.xpath("""//dt[contains(text(),'プレイ内容')]/following-sibling::dd[1]/a/text()""")
@@ -73,9 +78,11 @@ def getGenre(lx):
             playContents.append(tag)
     return playContents
 
+
 def getCover(num, hinban):
     result = F'https://my.cdn.tokyo-hot.com/media/{hinban}/jacket/{num}.jpg'
     return str(result)
+
 
 def getOutline(lx):
     result = lx.xpath(F"""//div[@class='sentence']/text()""")
@@ -123,7 +130,7 @@ def scraper(videopath, dstpath):
 
     # cut poster
     cover = Image.open(F"""{dstpath}/[{data['num']}] ({data['release']})/{data['num']}-cover.jpg""")
-    poster = cover.crop((cover.width/1.9, 0, cover.width, cover.height))
+    poster = cover.crop((cover.width / 1.9, 0, cover.width, cover.height))
     poster.save(F"""{dstpath}/[{data['num']}] ({data['release']})/{data['num']}-poster.jpg""")
 
     # write nfo

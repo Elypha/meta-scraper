@@ -1,38 +1,42 @@
 import os
 import re
 import shutil
-
-from PIL import Image
-from lxml import html
+from io import BytesIO
 
 import JK
-
+from lxml import html
+from PIL import Image
 
 
 def get_title(lx):
-    try: # DMM-A/DMM-C
+    try:  # DMM-A/DMM-C
         title = lx.xpath("""//h1[@id='title']/text()""")[0]
     except:
         title = '----'
     return title
 
+
 def get_release(lx):
-    try: # DMM-A/DMM-C
-        release = lx.xpath("""//td[contains(text(),'商品発売日：')]/following-sibling::td/text()""")[0].strip()
+    try:  # DMM-A/DMM-C
+        release = lx.xpath(
+            """//td[contains(text(),'商品発売日：')]/following-sibling::td/text()""")[0].strip()
         if not re.match(r'\d', release):
             raise Exception
     except:
         try:
-            release = lx.xpath("""//td[contains(text(),'配信開始日：')]/following-sibling::td/text()""")[0].strip()
+            release = lx.xpath(
+                """//td[contains(text(),'配信開始日：')]/following-sibling::td/text()""")[0].strip()
             if not re.match(r'\d', release):
                 raise Exception
         except:
             release = ''
     return release.replace("/", "-")
 
+
 def get_runtime(lx):
-    try: # DMM-A/DMM-C
-        runtime = lx.xpath("""//td[contains(text(),'収録時間：')]/following-sibling::td/text()""")[0]
+    try:  # DMM-A/DMM-C
+        runtime = lx.xpath(
+            """//td[contains(text(),'収録時間：')]/following-sibling::td/text()""")[0]
         runtime = re.search(r"\d+", str(runtime)).group()
         if not re.match(r'\d', runtime):
             raise Exception
@@ -40,15 +44,20 @@ def get_runtime(lx):
         runtime = ''
     return runtime
 
+
 def get_actors(lx, _html=''):
-    try: # DMM-A
-        actors = lx.xpath("""//td[contains(text(),'出演者：')]/following-sibling::td/span/a/text()""")
-        if actors == []: # DMM-C
-            actors = lx.xpath("""//td[contains(text(),'名前：')]/following-sibling::td//text()""")
+    try:  # DMM-A
+        actors = lx.xpath(
+            """//td[contains(text(),'出演者：')]/following-sibling::td/span/a/text()""")
+        if actors == []:  # DMM-C
+            actors = lx.xpath(
+                """//td[contains(text(),'名前：')]/following-sibling::td//text()""")
         else:
             if '▼すべて表示する' in actors:
-                actors_data = re.findall(r"url: '/digital/videoa/-/(.+?)',", _html.text)
-                actors_data = JK.web.rGET(F'https://www.dmm.co.jp/digital/videoa/-/{actors_data[0]}')
+                actors_data = re.findall(
+                    r"url: '/digital/videoa/-/(.+?)',", _html.text)
+                actors_data = JK.web.rGET(
+                    F'https://www.dmm.co.jp/digital/videoa/-/{actors_data[0]}')
                 actors = re.findall(r'>(.+?)<', actors_data.text)
         if '----' in actors:
             raise Exception
@@ -56,70 +65,86 @@ def get_actors(lx, _html=''):
         actors = []
     return actors
 
+
 def get_director(lx):
-    try: # DMM-A/DMM-C
-        director = lx.xpath("""//td[contains(text(),'監督：')]/following-sibling::td/a/text()""")[0]
+    try:  # DMM-A/DMM-C
+        director = lx.xpath(
+            """//td[contains(text(),'監督：')]/following-sibling::td/a/text()""")[0]
     except:
         try:
-            director = lx.xpath("""//td[contains(text(),'監督：')]/following-sibling::td/text()""")[0]
+            director = lx.xpath(
+                """//td[contains(text(),'監督：')]/following-sibling::td/text()""")[0]
         except:
             director = ''
     if director == '----':
         director = ''
     return director
 
+
 def get_series(lx):
-    try: # DMM-A/DMM-C
-        series = lx.xpath("""//td[contains(text(),'シリーズ：')]/following-sibling::td/a/text()""")[0]
+    try:  # DMM-A/DMM-C
+        series = lx.xpath(
+            """//td[contains(text(),'シリーズ：')]/following-sibling::td/a/text()""")[0]
     except:
         try:
-            series = lx.xpath("""//td[contains(text(),'シリーズ：')]/following-sibling::td/text()""")[0]
+            series = lx.xpath(
+                """//td[contains(text(),'シリーズ：')]/following-sibling::td/text()""")[0]
         except:
             series = ''
     if series == '----':
         series = ''
     return series
 
+
 def get_maker(lx):
-    try: # DMM-A/DMM-C
-        maker = lx.xpath("""//td[contains(text(),'メーカー：')]/following-sibling::td/a/text()""")[0]
+    try:  # DMM-A/DMM-C
+        maker = lx.xpath(
+            """//td[contains(text(),'メーカー：')]/following-sibling::td/a/text()""")[0]
     except:
         try:
-            maker = lx.xpath("""//td[contains(text(),'メーカー：')]/following-sibling::td/text()""")[0]
+            maker = lx.xpath(
+                """//td[contains(text(),'メーカー：')]/following-sibling::td/text()""")[0]
         except:
             maker = ''
     if maker == '----':
         maker = ''
     return maker
 
+
 def get_label(lx):
-    try: # DMM-A/DMM-C
-        label = lx.xpath("""//td[contains(text(),'レーベル：')]/following-sibling::td/a/text()""")[0]
+    try:  # DMM-A/DMM-C
+        label = lx.xpath(
+            """//td[contains(text(),'レーベル：')]/following-sibling::td/a/text()""")[0]
     except:
         try:
-            label = lx.xpath("""//td[contains(text(),'レーベル：')]/following-sibling::td/text()""")[0]
+            label = lx.xpath(
+                """//td[contains(text(),'レーベル：')]/following-sibling::td/text()""")[0]
         except:
             label = ''
     if label == '----':
         label = ''
     return label
 
+
 def get_genre(lx):
-    try: # DMM-A/DMM-C
-        genre = lx.xpath("""//td[contains(text(),'ジャンル：')]/following-sibling::td/a/text()""")
+    try:  # DMM-A/DMM-C
+        genre = lx.xpath(
+            """//td[contains(text(),'ジャンル：')]/following-sibling::td/a/text()""")
     except:
         try:
-            genre = lx.xpath("""//td[contains(text(),'ジャンル：')]/following-sibling::td/text()""")
+            genre = lx.xpath(
+                """//td[contains(text(),'ジャンル：')]/following-sibling::td/text()""")
         except:
             genre = []
     if genre == '----':
         genre = []
     return genre
 
+
 def get_outline(lx):
-    try: # DMM-A
+    try:  # DMM-A
         outline = lx.xpath(F"""//div[@class='mg-b20 lh4']/text()""")[0].strip()
-        if outline == '': # DMM-C
+        if outline == '':  # DMM-C
             outlineList = lx.xpath(F"""//div[@class='mg-b20 lh4']//text()""")
             outline = ''.join(outlineList)
             outline = outline.lstrip().rstrip()
@@ -129,16 +154,16 @@ def get_outline(lx):
         outline = ''
     return outline
 
+
 def get_cover(lx):
-    try: # DMM-A
+    try:  # DMM-A
         cover = lx.xpath(F"""//a[@name='package-image']/@href""")[0]
     except:
-        try: # DMM-C
+        try:  # DMM-C
             cover = lx.xpath(F"""//div[@id='sample-video']/img/@src""")[0]
         except:
             cover = ''
     return cover
-
 
 
 def scraper(videopath, dstpath):
@@ -150,11 +175,12 @@ def scraper(videopath, dstpath):
     # 处理文件名，提取有效 name
     name = name_main
 
-    if name_main.startswith('#'): # 检测手动模式
+    if name_main.startswith('#'):  # 检测手动模式
         num, hinban, URL_cid = name_main[1:].split('#')
-    else: # 根据 name 从 jav321 获取 hinban num
+    else:  # 根据 name 从 jav321 获取 hinban num
         if '-' in name:
-            html_jav321 = JK.web.rPOST(F'https://jp.jav321.com/search', data={"sn": name})
+            html_jav321 = JK.web.rPOST(
+                F'https://jp.jav321.com/search', data={"sn": name})
         else:
             html_jav321 = JK.web.rGET(F'https://jp.jav321.com/video/{name}')
 
@@ -162,7 +188,7 @@ def scraper(videopath, dstpath):
         jav321 = lx_jav321.xpath("""//div[@class='col-md-9']//text()""")
 
         hinban = html_jav321.url[28:]
-        num = jav321[jav321.index('品番')+1][2:].upper() # jav321的品番其实是num
+        num = jav321[jav321.index('品番') + 1][2:].upper()  # jav321的品番其实是num
         URL_cid = hinban
 
     dmma_url = F'https://www.dmm.co.jp/digital/videoa/-/detail/=/cid={URL_cid}'
@@ -205,14 +231,16 @@ def scraper(videopath, dstpath):
             website = html_dmmc.url
 
         else:
-            title = lx_jav321.xpath("""//div[@class='panel-heading']//h3/text()""")[0]
+            title = lx_jav321.xpath(
+                """//div[@class='panel-heading']//h3/text()""")[0]
             title = re.sub(r'\s*$', '', title)
-            release = jav321[jav321.index('配信開始日')+1][2:]
-            runtime = jav321[jav321.index('収録時間')+1][2:].replace(' minutes', '')
+            release = jav321[jav321.index('配信開始日') + 1][2:]
+            runtime = jav321[jav321.index(
+                '収録時間') + 1][2:].replace(' minutes', '')
 
             try:
                 actors = []
-                _actors1 = jav321[jav321.index('出演者')+1:jav321.index('メーカー')]
+                _actors1 = jav321[jav321.index('出演者') + 1:jav321.index('メーカー')]
                 _actors2 = []
                 for i in _actors1:
                     if '\xa0' in i:
@@ -225,37 +253,38 @@ def scraper(videopath, dstpath):
                 actors = ['']
 
             try:
-                series = jav321[jav321.index('シリーズ')+2]
+                series = jav321[jav321.index('シリーズ') + 2]
             except:
                 series = ''
 
-            maker = jav321[jav321.index('メーカー')+1:jav321.index('ジャンル')][1]
+            maker = jav321[jav321.index('メーカー') + 1:jav321.index('ジャンル')][1]
 
             genre = []
-            _genre = jav321[jav321.index('ジャンル')+1:jav321.index('品番')]
+            _genre = jav321[jav321.index('ジャンル') + 1:jav321.index('品番')]
             for i in _genre:
                 if i.strip() not in ['', ':']:
                     genre.append(i.strip())
 
-            outline = lx_jav321.xpath("""//div[@class='col-md-12']//text()""")[2]
+            outline = lx_jav321.xpath(
+                """//div[@class='col-md-12']//text()""")[2]
 
             cover = F'https://pics.dmm.co.jp/digital/video/{hinban}/{hinban}pl.jpg'
 
             # javbus
             html_dmmc = JK.web.rGET(F'https://www.javbus.com/ja/{num}')
             lx_dmmc = html.fromstring(html_dmmc.text)
-            _javbus = lx_dmmc.xpath("""//div[@class='col-md-3 info']//text()""")
+            _javbus = lx_dmmc.xpath(
+                """//div[@class='col-md-3 info']//text()""")
 
             try:
-                director = _javbus[_javbus.index('監督:')+2]
+                director = _javbus[_javbus.index('監督:') + 2]
             except:
                 director = ''
 
             try:
-                label = _javbus[_javbus.index('レーベル:')+2]
+                label = _javbus[_javbus.index('レーベル:') + 2]
             except:
                 label = ''
-
 
     data = {
         "title": title,
@@ -288,11 +317,29 @@ def scraper(videopath, dstpath):
 
     # cut poster
     cover = Image.open(F"{baseDir}/{data['num']}-cover.jpg")
-    if 1.45 <= cover.width/cover.height <= 1.55:
-        poster = cover.crop((cover.width/1.9, 0, cover.width, cover.height))
+    if 1.45 <= cover.width / cover.height <= 1.55:
+        poster = cover.crop((cover.width / 1.9, 0, cover.width, cover.height))
         poster.save(F"{baseDir}/{data['num']}-poster.jpg")
     else:
-        shutil.copyfile(F"{baseDir}/{data['num']}-cover.jpg", F"{baseDir}/{data['num']}-poster.jpg")
+        try:
+            # https://pics.dmm.co.jp/digital/video/1stars00347/1stars00347pl.jpg イメージ封面大图
+            # https://pics.dmm.co.jp/digital/video/1stars00347/1stars00347jp-1.jpg サンプル画像#1
+            poster = JK.web.rGET(
+                F"https://pics.dmm.co.jp/digital/video/{data['hinban']}/{data['hinban']}jp-1.jpg")
+            if poster.status_code != 200 or len(poster.content) < 10000:
+                print(F"[{data['num']}] イメージ Cover 不符合标准，获取サンプル画像#1也失败，建议手动检查")
+                raise Exception
+            RAM_poster = BytesIO()
+            RAM_poster.write(poster.content)
+            poster = Image.open(RAM_poster)
+            if 1.37 <= poster.height / poster.width <= 1.47:
+                poster.save(F"{baseDir}/{data['num']}-poster.jpg")
+            else:
+                print(F"[{data['num']}] サンプル画像#1尺寸不符合要求，建议手动检查")
+                raise Exception
+        except:
+            shutil.copyfile(
+                F"{baseDir}/{data['num']}-cover.jpg", F"{baseDir}/{data['num']}-poster.jpg")
 
     # write nfo
     with open(F"{baseDir}/{data['num']}.nfo", 'w', encoding='utf-8') as f:

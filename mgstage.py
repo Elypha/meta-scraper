@@ -2,15 +2,13 @@ import os
 import re
 import shutil
 
-from PIL import Image
-from lxml import html
-
 import JK
-
+from lxml import html
+from PIL import Image
 
 
 def get_title(lx):
-    try: # DVD/配信
+    try:  # DVD/配信
         _title = lx.xpath("""//h1[@class='tag']//text()""")[0].strip()
         try:
             MGS_tag = re.search(r'【MGSだけのおまけ映像付き.+分】', _title).group()
@@ -21,8 +19,9 @@ def get_title(lx):
         title = '----'
     return title
 
+
 def get_release(lx):
-    try: # DVD/配信
+    try:  # DVD/配信
         release = lx.xpath("""//th[contains(text(),'商品発売日：')]/following-sibling::td/text()""")[0].strip()
         if not re.match(r'\d', release):
             raise Exception
@@ -35,8 +34,9 @@ def get_release(lx):
             release = ''
     return release.replace("/", "-")
 
+
 def get_runtime(lx):
-    try: # DVD/配信
+    try:  # DVD/配信
         runtime = lx.xpath("""//th[contains(text(),'収録時間：')]/following-sibling::td/text()""")[0]
         runtime = re.search(r"\d+", str(runtime)).group()
         if not re.match(r'\d', runtime):
@@ -45,8 +45,9 @@ def get_runtime(lx):
         runtime = ''
     return runtime
 
+
 def get_actors(lx):
-    try: # DVD/配信
+    try:  # DVD/配信
         _actors = lx.xpath("""//th[contains(text(),'出演：')]/following-sibling::td//text()""")
         actors = []
         for i in _actors:
@@ -56,8 +57,9 @@ def get_actors(lx):
         actors = []
     return actors
 
+
 def get_series(lx):
-    try: # DVD/配信
+    try:  # DVD/配信
         _series = lx.xpath("""//th[contains(text(),'シリーズ：')]/following-sibling::td//text()""")
         for i in _series:
             if i.strip() != '':
@@ -66,8 +68,9 @@ def get_series(lx):
     except:
         return ''
 
+
 def get_maker(lx):
-    try: # DVD/配信
+    try:  # DVD/配信
         _maker = lx.xpath("""//th[contains(text(),'メーカー：')]/following-sibling::td//text()""")
         for i in _maker:
             if i.strip() != '':
@@ -76,8 +79,9 @@ def get_maker(lx):
     except:
         return ''
 
+
 def get_label(lx):
-    try: # DVD/配信
+    try:  # DVD/配信
         _label = lx.xpath("""//th[contains(text(),'レーベル：')]/following-sibling::td//text()""")
         for i in _label:
             if i.strip() != '':
@@ -86,8 +90,9 @@ def get_label(lx):
     except:
         return ''
 
+
 def get_genre(lx):
-    try: # DVD/配信
+    try:  # DVD/配信
         _genre = lx.xpath("""//th[contains(text(),'ジャンル：')]/following-sibling::td//text()""")
         genre = []
         for i in _genre:
@@ -97,12 +102,13 @@ def get_genre(lx):
         genre = []
     return genre
 
+
 def get_outline(lx):
-    try: # DVD/配信
+    try:  # DVD/配信
         _outline = lx.xpath("""//dl[@id='introduction']/dd//text()""")
         outline = ''
         for i in _outline:
-            if not re.match(r'^[\s\n]*$',i) and not '…すべてを見る' in i:
+            if not re.match(r'^[\s\n]*$', i) and not '…すべてを見る' in i:
                 outline = outline + i + '\n\n'
 
         outline = outline[:-2]
@@ -110,8 +116,9 @@ def get_outline(lx):
         outline = ''
     return outline
 
+
 def get_cover(lx):
-    try: # DVD/配信
+    try:  # DVD/配信
         cover = lx.xpath(F"""//img[@class='enlarge_image']/@src""")[0]
         if '/pf_o1_' in cover:
             cover = cover.replace('/pf_o1_', '/pb_e_')
@@ -176,8 +183,8 @@ def scraper(videopath, dstpath, num=''):
 
     # cut poster
     cover = Image.open(F"{baseDir}/{data['num']}-cover.jpg")
-    if 1.45 <= cover.width/cover.height <= 1.55:
-        poster = cover.crop((cover.width/1.9, 0, cover.width, cover.height))
+    if 1.45 <= cover.width / cover.height <= 1.55:
+        poster = cover.crop((cover.width / 1.9, 0, cover.width, cover.height))
         poster.save(F"{baseDir}/{data['num']}-poster.jpg")
     else:
         shutil.copyfile(F"{baseDir}/{data['num']}-cover.jpg", F"{baseDir}/{data['num']}-poster.jpg")

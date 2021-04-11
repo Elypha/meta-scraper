@@ -7,10 +7,9 @@ import mgstage
 import tokyohot
 
 
-
 if __name__ == '__main__':
 
-    root_raw      = R'K:\MGS'
+    root_raw = R'K:\0'
     root_finished = R'K:\1'
 
     root_raw = root_raw.replace('\\', '/')
@@ -19,17 +18,16 @@ if __name__ == '__main__':
 
     print(F'Find {len(videos)} files\n\n')
 
-    ## main
+    # main
     p = Pool(12)
 
     for video in videos:
-        p.apply_async(mgstage.scraper, args=(video, root_finished, ))
+        p.apply_async(dmm.scraper, args=(video, root_finished, ))
 
     p.close()
     p.join()
 
-
-    ## main (debug)
+    # main (debug)
     # for video in videos:
     #     print(video)
-    #     mgstage.scraper(video, root_finished)
+    #     dmm.scraper(video, root_finished)
